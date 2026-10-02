@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <SwitchPreferenceCompat
+        android:key="signin_enabled"
+        android:title="@string/pref_signin_switch"
+        android:summary="@string/pref_signin_switch_summary"
+        android:defaultValue="true" />
+
+    <Preference
+        android:key="manual_signin"
+        android:title="@string/pref_manual_signin"
+        android:summary="@string/pref_manual_signin_summary" />
+
+    <Preference
+        android:key="hook_status"
+        android:title="@string/pref_hook_status"
+        android:summary="@string/pref_hook_status_summary"
+        android:selectable="false" />
+
+</PreferenceScreen>

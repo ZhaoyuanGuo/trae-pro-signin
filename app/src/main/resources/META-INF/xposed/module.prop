@@ -1,0 +1,5 @@
+name=TRAE Pro
+description=注入 Trae 手机端，实现每日无人值守自动签到领积分（定时触发 / 失败重试 / 结果通知 / 凭证过期预警）
+minApiVersion=102
+targetApiVersion=102
+autoHotReload=true

@@ -1,0 +1,30 @@
+# Build outputs
+build/
+app/build/
+.gradle/
+.kotlin/
+
+# IDE
+.idea/
+*.iml
+
+# Android local config
+local.properties
+
+# 调试/逆向分析产物（含真实凭证，严禁入库）
+tools/
+icon_drafts/
+
+# Keystore & binaries
+*.apk
+*.aab
+*.jks
+*.keystore
+
+# Server（密钥/数据库/依赖/环境变量严禁入库）
+server/**/node_modules/
+server/**/.env
+server/**/data/
+
+# Logs
+*.log

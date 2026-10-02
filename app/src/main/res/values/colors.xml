@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 图标背景色（adaptive icon） -->
+    <color name="ic_launcher_bg">#EDF0F6</color>
+
+    <!-- 徽章 / 提示底色（浅色） -->
+    <color name="badge_text">#2E6BFF</color>
+    <color name="badge_bg">#E8EFFF</color>
+    <color name="desc_bg">#F3F4F6</color>
+
+    <!-- 状态语义色：成功 / 警告 / 失败（浅色） -->
+    <color name="ok_text">#1E9E5A</color>
+    <color name="ok_bg">#E6F7EC</color>
+    <color name="warn_text">#C26A00</color>
+    <color name="warn_bg">#FFF1E0</color>
+    <color name="err_text">#DC2626</color>
+    <color name="err_bg">#FDE8E8</color>
+</resources>

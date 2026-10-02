@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  云端服务地址由 COS 远程配置动态下发（cloud/RemoteBases），无法在编译期枚举域名，
+  故放行全局明文 HTTP（过渡期方案；服务端切 HTTPS 域名后应改回默认严格策略）。
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

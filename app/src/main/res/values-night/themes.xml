@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Trae 桌面端 Dark 主题风格：深空灰底 + Trae 品牌蓝 -->
+    <style name="Theme.TraeSignin" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">#4D6BFE</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorPrimaryContainer">#24325F</item>
+        <item name="colorOnPrimaryContainer">#B9C6FF</item>
+        <item name="colorSecondary">#7C96FF</item>
+        <item name="android:colorBackground">#16171B</item>
+        <item name="colorSurface">#1E2026</item>
+        <item name="colorSurfaceContainer">#1E2026</item>
+        <item name="colorOnSurface">#E8EAED</item>
+        <item name="colorOnSurfaceVariant">#9AA0A6</item>
+        <item name="colorOutline">#2C3038</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+</resources>

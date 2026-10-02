@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.TraeSignin" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">#2E6BFF</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorPrimaryContainer">#E8EFFF</item>
+        <item name="colorOnPrimaryContainer">#123B8F</item>
+        <item name="colorSecondary">#5B7BA8</item>
+        <item name="android:colorBackground">#F6F7F9</item>
+        <item name="colorSurface">#FFFFFF</item>
+        <item name="colorSurfaceContainer">#FFFFFF</item>
+        <item name="colorOnSurface">#111827</item>
+        <item name="colorOnSurfaceVariant">#6B7280</item>
+        <item name="colorOutline">#E5E7EB</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+</resources>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 深色配色参考 Trae 桌面端 Dark 主题 -->
+    <color name="badge_text">#7C96FF</color>
+    <color name="badge_bg">#24325F</color>
+    <color name="desc_bg">#262A33</color>
+
+    <!-- 状态语义色（深色，降低饱和度保证可读） -->
+    <color name="ok_text">#5BD99A</color>
+    <color name="ok_bg">#12321F</color>
+    <color name="warn_text">#FBBF24</color>
+    <color name="warn_bg">#33270E</color>
+    <color name="err_text">#F87171</color>
+    <color name="err_bg">#3A1A1A</color>
+</resources>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 方案 3 前景层（adaptive icon，108dp 视口，内容已烘焙缩放至安全区内） -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 日历卡片 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#D9DFEA"
+        android:strokeWidth="1.6"
+        android:pathData="M36.4,34.8H71.6A6.4,6.4 0 0,1 78,41.2V69.2A6.4,6.4 0 0,1 71.6,75.6H36.4A6.4,6.4 0 0,1 30,69.2V41.2A6.4,6.4 0 0,1 36.4,34.8Z" />
+    <!-- 日历头部 -->
+    <path
+        android:fillColor="#4D6BFE"
+        android:pathData="M30,41.2A6.4,6.4 0 0,1 36.4,34.8H71.6A6.4,6.4 0 0,1 78,41.2V49.2H30Z" />
+    <!-- 装订环 ×2 -->
+    <path
+        android:fillColor="#2E45C4"
+        android:pathData="M38.96,31.92A2.24,2.24 0 0,1 41.2,29.68A2.24,2.24 0 0,1 43.44,31.92V37.36A2.24,2.24 0 0,1 41.2,39.6A2.24,2.24 0 0,1 38.96,37.36Z" />
+    <path
+        android:fillColor="#2E45C4"
+        android:pathData="M64.56,31.92A2.24,2.24 0 0,1 66.8,29.68A2.24,2.24 0 0,1 69.04,31.92V37.36A2.24,2.24 0 0,1 66.8,39.6A2.24,2.24 0 0,1 64.56,37.36Z" />
+    <!-- 对勾 -->
+    <path
+        android:pathData="M42.8,61.2L50.48,68.4L66,53.2"
+        android:strokeColor="#4D6BFE"
+        android:strokeWidth="5.44"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+    <!-- 金色星贴纸 -->
+    <path
+        android:fillColor="#F5B940"
+        android:pathData="M73.2,64.24L74.96,68.4L79.12,70.16L74.96,71.92L73.2,76.08L71.44,71.92L67.28,70.16L71.44,68.4Z" />
+</vector>

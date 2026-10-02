@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TRAE Pro</string>
+    <string name="xposed_description">TRAE Pro：注入 Trae 手机端实现每日自动签到领积分（无人值守定时 + 失败重试 + 结果通知，LSP API 102）</string>
+    <string name="settings_title">TRAE Pro · 设置</string>
+    <string name="login_title">登录友爱账号</string>
+    <string name="pref_signin_switch">启用自动签到</string>
+    <string name="pref_signin_switch_summary">在 Trae App 启动时自动执行签到</string>
+    <string name="pref_manual_signin">立即手动签到</string>
+    <string name="pref_manual_signin_summary">手动触发一次签到请求（仅当 Trae 处于前台时有效）</string>
+    <string name="pref_hook_status">模块状态</string>
+    <string name="pref_hook_status_summary">注入成功 / 失败信息</string>
+</resources>
