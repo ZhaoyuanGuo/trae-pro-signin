@@ -1,7 +1,7 @@
 # TRAE Pro · Trae 自动签到 LSPosed 模块
 
 > 一个 LSPosed 模块，注入 Trae 手机端客户端（com.bytedance.trae.cn），实现每日无人值守自动签到领积分。
-> 目标环境：Android 8.0+ / LSPosed（libxposed API 102）· 当前版本 **v1.0.8**
+> 目标环境：Android 8.0+ / LSPosed（libxposed API 102）· 当前版本 **v1.0.10**
 
 **仅供学习研究 Xposed 模块开发技术使用。请自行评估并遵守目标应用的服务条款，使用本项目产生的任何后果由使用者自行承担。**
 
@@ -68,13 +68,33 @@
 
 ## 安装
 
-### 从 LSPosed 模块仓库下载（推荐）
+> **先看这张表，按自己的设备环境二选一：**
 
-[模块主页](https://modules.lsposed.org/module/io.github.zhaoyuanguo.traesignin) · [Releases](https://github.com/Xposed-Modules-Repo/io.github.zhaoyuanguo.traesignin/releases)
+| 你的设备 | 选哪个包 | 需要 Root？ | 需要 LSPosed？ |
+| --- | --- | :---: | :---: |
+| 已 Root + 已装 LSPosed（API 102） | `traesignin-x.x.x-release.apk`（标准模块） | ✅ 需要 | ✅ 需要 |
+| **没有 Root / 没装任何框架** | `trae-npatch-x.x.x.apk`（免 Root 直装包） | ❌ 不需要 | ❌ 不需要 |
 
-1. 安装 APK → LSPosed 管理器启用模块，作用域勾选 **Trae**
-2. 打开模块 App「TRAE Pro」完成设置
-3. 重启 Trae 生效
+前往 [Releases](https://github.com/ZhaoyuanGuo/trae-pro-signin/releases) 下载。
+
+### 方式一：标准 LSPosed 模块（需 Root + LSPosed）
+
+适用于**已 Root 且已安装 LSPosed**（libxposed API 102）的设备。
+
+1. 安装 `traesignin-x.x.x-release.apk`
+2. 在 LSPosed 管理器中启用模块，作用域勾选 **Trae**
+3. 打开模块 App「TRAE Pro」完成设置
+4. 重启 Trae 生效
+
+### 方式二：免 Root 直装包（**没有 Root、没有 LSPosed 框架的选这个**）
+
+`trae-npatch-x.x.x.apk` 是用 [NPatch](https://github.com/7723mod/NPatch) 把本模块内嵌进 Trae 客户端后重新签名的**独立可安装包**——开箱即用，**不需要 Root、不需要 LSPosed、不需要任何 Xposed 框架**。
+
+1. **先卸载设备上原有的 Trae**（包名相同、签名不同，无法覆盖安装；卸载会清除 Trae 本地登录数据，请自行确认）
+2. 安装 `trae-npatch-x.x.x.apk`
+3. 打开应用登录 Trae 账号即可，模块随宿主进程自动注入，无需任何额外配置
+
+> 注意：该包内嵌的 Trae 客户端为**重打包版本**，仅供学习研究使用；后续 Trae 官方更新时，本包不会自动跟随升级。
 
 ### 自行构建
 
@@ -89,6 +109,7 @@ gradle assembleRelease        # 产物：app/build/outputs/apk/release/app-relea
 
 - [LSPosed](https://github.com/LSPosed/LSPosed)
 - [libxposed API](https://github.com/libxposed/api)
+- [NPatch](https://github.com/7723mod/NPatch)（免 Root 打包工具）
 
 ## License
 
