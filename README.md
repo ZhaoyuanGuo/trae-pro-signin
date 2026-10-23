@@ -1,7 +1,9 @@
 # Trae 自动签到 LSPosed 模块
 
+> ⚠️ **不提供免 Root 版本。** 本模块必须 Root + LSPosed 才能工作；如果你需要免 Root 使用，请自行修改源码实现。
+
 > 一个 LSPosed 模块，注入 Trae 手机端客户端（com.bytedance.trae.cn），实现每日无人值守自动签到领积分。
-> 目标环境：Android 8.0+（minSdk 26）/ LSPosed（libxposed API 102）· 当前版本 **v1.9**
+> 目标环境：Android 8.0+（minSdk 26）/ LSPosed（libxposed API 102）· 当前版本 **v2.1**
 
 **仅供学习研究 Xposed 模块开发技术使用。请自行评估并遵守目标应用的服务条款，使用本项目产生的任何后果由使用者自行承担。**
 
@@ -62,8 +64,6 @@
 2. 在 LSPosed 管理器中启用模块，作用域勾选 **Trae**
 3. 打开模块 App「TRAE Pro」，按需开启通知/自启动权限
 4. 完成——定时与手动签到均不再需要打开 Trae
-
-> **不支持免 Root 使用。** 原版（v1.0.10 及以前）曾提供 NPatch 免 Root 直装包，本仓库后续版本依赖 root 直签与 su 拉起，**不提供免 Root 版本**；无 Root 环境请使用原版。
 
 ## 自行构建
 
