@@ -1,7 +1,7 @@
-package com.example.traesignin.hook
+package mignnlapin.traesignin.hook
 
 import android.os.Build
-import com.example.traesignin.util.L
+import mignnlapin.traesignin.util.L
 
 /**
  * 客户端伪装器（libxposed 版，仅保留无依赖的 Layer 1）。

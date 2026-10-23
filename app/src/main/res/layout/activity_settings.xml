@@ -10,8 +10,7 @@
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -44,15 +43,6 @@
                         android:textColor="?colorOnSurface"
                         android:textSize="28sp"
                         android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tvSubtitle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="LSPosed 模块 · 注入 Trae 手机端"
-                        android:textColor="?colorOnSurfaceVariant"
-                        android:textSize="13sp" />
                 </LinearLayout>
 
                 <TextView
@@ -329,12 +319,12 @@
                                 android:textStyle="bold" />
                         </LinearLayout>
 
-                        <!-- 随机偏移量 -->
+                        <!-- 随机偏移量（圆角方形框） -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="10dp"
-                            android:background="@drawable/bg_status_chip"
+                            android:background="@drawable/bg_box_round"
                             android:backgroundTint="@color/desc_bg"
                             android:orientation="vertical"
                             android:paddingHorizontal="14dp"
@@ -380,7 +370,7 @@
                         android:layout_height="1dp"
                         android:background="?android:colorBackground" />
 
-                    <!-- ③ 深色主题（控制模块 App 自身） -->
+                    <!-- ③ 深色主题：跟随系统开关（关闭展开手动选择）+ Trae 深色独立开关 -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -397,7 +387,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="深色主题"
+                                android:text="跟随系统"
                                 android:textColor="?colorOnSurface"
                                 android:textSize="16sp"
                                 android:textStyle="bold" />
@@ -406,7 +396,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:text="开启后模块使用深色主题；关闭则跟随系统"
+                                android:text="开启 = 模块深浅随系统切换；关闭 = 在下方手动选择"
                                 android:textColor="?colorOnSurfaceVariant"
                                 android:textSize="13sp" />
                         </LinearLayout>
@@ -416,77 +406,49 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />
                     </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
 
-            <!-- 云端代签卡片：账号 / 计划 / 状态 -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardCloud"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                app:cardBackgroundColor="?colorSurface"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="0dp"
-                app:strokeColor="?colorOutline"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingHorizontal="18dp"
-                    android:paddingVertical="6dp">
-
-                    <!-- 账号行 -->
                     <LinearLayout
+                        android:id="@+id/darkBody"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingVertical="14dp">
+                        android:orientation="vertical"
+                        android:paddingBottom="8dp">
 
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="云端代签"
-                                android:textColor="?colorOnSurface"
-                                android:textSize="16sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:id="@+id/tvCloudAccount"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:text="未登录 · 登录后手机关机也能代签"
-                                android:textColor="?colorOnSurfaceVariant"
-                                android:textSize="13sp" />
-                        </LinearLayout>
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnCloudAction"
-                            style="@style/Widget.Material3.Button.TonalButton"
+                        <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:minWidth="0dp"
-                            android:text="登录"
+                            android:layout_marginTop="2dp"
+                            android:text="模块深浅"
+                            android:textColor="?colorOnSurfaceVariant"
                             android:textSize="13sp"
-                            app:cornerRadius="12dp" />
+                            android:textStyle="bold" />
+
+                        <com.google.android.material.button.MaterialButtonToggleGroup
+                            android:id="@+id/tgDarkMode"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            app:selectionRequired="true"
+                            app:singleSelection="true">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnDarkLight"
+                                style="?attr/materialButtonOutlinedStyle"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="浅色" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnDarkDark"
+                                style="?attr/materialButtonOutlinedStyle"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="深色" />
+                        </com.google.android.material.button.MaterialButtonToggleGroup>
                     </LinearLayout>
 
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="?android:colorBackground" />
-
-                    <!-- 启用开关行 -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -503,7 +465,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="启用服务器代签"
+                                android:text="将 Trae 改成深色"
                                 android:textColor="?colorOnSurface"
                                 android:textSize="16sp"
                                 android:textStyle="bold" />
@@ -512,152 +474,137 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:text="开启后本机当日跳过，由云端定时执行"
+                                android:text="对 Trae 界面做亮度反转（独立于模块自身深浅）"
                                 android:textColor="?colorOnSurfaceVariant"
                                 android:textSize="13sp" />
                         </LinearLayout>
 
                         <com.google.android.material.materialswitch.MaterialSwitch
-                            android:id="@+id/swCloud"
+                            android:id="@+id/swTraeDark"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:enabled="false" />
-                    </LinearLayout>
-
-                    <!-- 云端详情（登录后可见） -->
-                    <LinearLayout
-                        android:id="@+id/cloudBody"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:visibility="gone"
-                        android:paddingBottom="14dp">
-
-                        <!-- 云端执行时间 -->
-                        <LinearLayout
-                            android:id="@+id/rowCloudTime"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/bg_status_chip"
-                            android:backgroundTint="@color/desc_bg"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal"
-                            android:paddingHorizontal="14dp"
-                            android:paddingVertical="12dp">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="每日执行时刻（基准）"
-                                android:textColor="?colorOnSurface"
-                                android:textSize="14sp" />
-
-                            <TextView
-                                android:id="@+id/tvCloudTime"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="08:00"
-                                android:textColor="@color/badge_text"
-                                android:textSize="16sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <!-- 云端抖动窗口 -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:background="@drawable/bg_status_chip"
-                            android:backgroundTint="@color/desc_bg"
-                            android:orientation="vertical"
-                            android:paddingHorizontal="14dp"
-                            android:paddingVertical="12dp">
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal">
-
-                                <TextView
-                                    android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_weight="1"
-                                    android:text="随机抖动（每日重抽更拟真）"
-                                    android:textColor="?colorOnSurface"
-                                    android:textSize="14sp" />
-
-                                <TextView
-                                    android:id="@+id/tvCloudJitterVal"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="≤ 30 分钟"
-                                    android:textColor="@color/badge_text"
-                                    android:textSize="14sp"
-                                    android:textStyle="bold" />
-                            </LinearLayout>
-
-                            <com.google.android.material.slider.Slider
-                                android:id="@+id/sliderCloudJitter"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:valueFrom="0"
-                                android:valueTo="120"
-                                android:stepSize="5"
-                                android:value="30" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:id="@+id/tvCloudStatus"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:lineSpacingExtra="4dp"
-                            android:text="云端状态：加载中…"
-                            android:textColor="?colorOnSurface"
-                            android:textSize="13sp" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnCloudNow"
-                            style="@style/Widget.Material3.Button.TonalButton"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:minHeight="50dp"
-                            android:text="立即云端代签"
-                            android:textSize="15sp"
-                            app:cornerRadius="16dp" />
+                            android:layout_height="wrap_content" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 底部说明 -->
-            <TextView
-                android:id="@+id/tvFooter"
+            <!-- ④ 权限设置：说明用途 + 无权限后果，点击弹出说明对话框后跳转 -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardPerms"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
-                android:gravity="center"
-                android:lineSpacingExtra="3dp"
-                android:text="手动签到入口已注入 Trae 积分页\n目标应用：com.bytedance.trae.cn"
-                android:textColor="?colorOnSurfaceVariant"
-                android:textSize="12sp" />
+                app:cardBackgroundColor="?colorSurface"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="4dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="12dp"
+                        android:text="权限设置"
+                        android:textColor="?colorOnSurfaceVariant"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:id="@+id/rowPermNotify"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingVertical="14dp">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="通知权限"
+                                android:textColor="?colorOnSurface"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="签到结果通知（成功/失败 + 积分与余额）"
+                                android:textColor="?colorOnSurfaceVariant"
+                                android:textSize="13sp" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvPermNotifyState"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/rowPermAutostart"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingVertical="14dp">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="自启动权限"
+                                android:textColor="?colorOnSurface"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="保证模块被杀后定时签到仍能到点执行"
+                                android:textColor="?colorOnSurfaceVariant"
+                                android:textSize="13sp" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="去设置 ›"
+                            android:textColor="?colorPrimary"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appBar"
+    <!-- 主题切换过渡遮罩：切换深浅时先盖住再 recreate，避免生硬跳变 -->
+    <View
+        android:id="@+id/themeMask"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/transparent"
-        app:elevation="0dp">
-
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@android:color/transparent"
-            app:navigationIcon="@drawable/ic_back" />
-    </com.google.android.material.appbar.AppBarLayout>
+        android:layout_height="match_parent"
+        android:background="?android:colorBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

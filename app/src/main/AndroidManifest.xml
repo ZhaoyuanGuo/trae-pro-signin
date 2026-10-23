@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- 友爱账号（Uniai）/代签：访问账号中心（:3010）与代签服务（:3011） -->
+    <!-- 定时签到到点自动拉起 Trae（Android 12+ 精确闹钟；被拒时降级 setWindow） -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- 模块 App 直签（LocalSigner）：直接请求 Trae 签到接口，不拉起宿主 -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- 签到结果通知：以模块自身身份发出（不走 Trae），root 静默授权 + 运行时请求兜底 -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!-- 声明目标包：API 30+ 包可见性，getLaunchIntentForPackage / runningTargets 需要 -->
     <queries>
@@ -13,8 +19,7 @@
         android:name=".App"
         android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
-        android:theme="@style/Theme.TraeSignin"
-        android:networkSecurityConfig="@xml/network_security_config">
+        android:theme="@style/Theme.TraeSignin">
 
         <!-- libxposed API 102 纯新式模块：声明全部位于 META-INF/xposed/（java_init.list / module.prop / scope.list） -->
 
@@ -28,12 +33,6 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".LoginActivity"
-            android:exported="false"
-            android:label="@string/login_title"
-            android:windowSoftInputMode="adjustResize" />
-
         <!-- 桌面启动别名（对齐 chaoxingdeadline：主 Activity 只挂 MODULE_SETTINGS，桌面走 alias） -->
         <activity-alias
             android:name=".LauncherActivity"
@@ -46,6 +45,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity-alias>
+
+        <!-- 定时签到拉起器：静态注册，模块 App 进程被杀后系统仍会拉起进程执行；
+             兼收开机广播恢复布防 -->
+        <receiver
+            android:name=".SchedLauncher$Receiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="mignnlapin.traesignin.LAUNCH_SCHED" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
     </application>
 </manifest>

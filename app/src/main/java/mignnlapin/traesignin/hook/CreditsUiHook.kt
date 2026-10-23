@@ -1,4 +1,4 @@
-package com.example.traesignin.hook
+package mignnlapin.traesignin.hook
 
 import android.app.Activity
 import android.app.Dialog
@@ -14,8 +14,8 @@ import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
-import com.example.traesignin.XposedEntry
-import com.example.traesignin.util.L
+import mignnlapin.traesignin.XposedEntry
+import mignnlapin.traesignin.util.L
 import io.github.libxposed.api.XposedInterface
 import java.util.WeakHashMap
 

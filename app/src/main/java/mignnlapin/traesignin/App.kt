@@ -1,10 +1,11 @@
-package com.example.traesignin
+package mignnlapin.traesignin
 
 import android.app.Application
 import androidx.appcompat.app.AppCompatDelegate
 import java.util.concurrent.CopyOnWriteArrayList
 import io.github.libxposed.service.XposedService
 import io.github.libxposed.service.XposedServiceHelper
+import mignnlapin.traesignin.util.L
 
 /**
  * 模块 App 进程入口：接通 LSPosed fork 服务层（对齐 dev.chaoxingdeadline/App.java）。
@@ -34,17 +35,40 @@ class App : Application(), XposedServiceHelper.OnServiceListener {
 
     override fun onCreate() {
         super.onCreate()
-        com.example.traesignin.cloud.RemoteBases.init(this)
+        // App 进程日志文件持久化（files/logs/app_*.log，保留 5 天）：导出/排障不依赖 Trae
+        L.init(this)
+        // v2.0 深色键迁移：旧 dark_mode → dark_follow_system(默认关) + trae_dark_enabled（保持 Trae 深色原状态）
+        run {
+            val p = getSharedPreferences("trae_signin_prefs", 0)
+            if (p.contains("dark_mode") && !p.contains("trae_dark_enabled")) {
+                p.edit().putBoolean("trae_dark_enabled", p.getBoolean("dark_mode", false)).apply()
+            }
+        }
         applySavedTheme()
         XposedServiceHelper.registerListener(this)
+        // 定时签到：App 启动即布防到点自动拉起 Trae 的闹钟
+        SchedLauncher.arm(this)
+        // 结果通知由模块自身身份发出：root 静默授予通知权限（失败则由设置页请求运行时权限兜底）
+        Thread {
+            try {
+                Runtime.getRuntime().exec(
+                    arrayOf("su", "-c", "pm grant mignnlapin.traesignin android.permission.POST_NOTIFICATIONS")
+                ).waitFor()
+            } catch (_: Throwable) { }
+        }.start()
     }
 
-    /** 深色主题开关（SettingsActivity ③）：开启 = 跟随系统深色模式；关闭 = 始终浅色 */
+    /** 深色主题：跟随系统开关（dark_follow_system）+ 手动选择（dark_force_dark） */
     private fun applySavedTheme() {
-        val dark = getSharedPreferences("trae_signin_prefs", 0).getBoolean("dark_mode", false)
+        val p = getSharedPreferences("trae_signin_prefs", 0)
         AppCompatDelegate.setDefaultNightMode(
-            if (dark) AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-            else AppCompatDelegate.MODE_NIGHT_NO
+            if (p.getBoolean("dark_follow_system", true)) {
+                AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+            } else if (p.getBoolean("dark_force_dark", false)) {
+                AppCompatDelegate.MODE_NIGHT_YES
+            } else {
+                AppCompatDelegate.MODE_NIGHT_NO
+            }
         )
     }
 

@@ -1,7 +1,7 @@
-# TRAE Pro · Trae 自动签到 LSPosed 模块
+# Trae 自动签到 LSPosed 模块
 
 > 一个 LSPosed 模块，注入 Trae 手机端客户端（com.bytedance.trae.cn），实现每日无人值守自动签到领积分。
-> 目标环境：Android 8.0+ / LSPosed（libxposed API 102）· 当前版本 **v1.0.10**
+> 目标环境：Android 8.0+（minSdk 26）/ LSPosed（libxposed API 102）· 当前版本 **v1.9**
 
 **仅供学习研究 Xposed 模块开发技术使用。请自行评估并遵守目标应用的服务条款，使用本项目产生的任何后果由使用者自行承担。**
 
@@ -9,107 +9,75 @@
 
 ## 功能
 
-- **开屏自动签到**：Trae 启动后 15s 内补签，引擎 60s tick 处理手动指令与失败重试
-- **定时签到**：自定义时间 + 随机偏移量（模拟真实操作节奏），AlarmManager 兜底，当日已签自动跳过
-- **远程接口源**：签到接口地址托管在腾讯云 COS（公有读 JSON），App 启动/签到前自动拉取更新，失败回退本地缓存或内置地址——接口变更无需发版
-- **剩余积分展示**：与 Trae 面板同源同步
-- **Trae 内注入入口**：在 Trae 设置面板注入「立即签到」胶囊按钮
-- **签到历史**：近 30 天记录（BottomSheet）+ 漏签检测（近 7 天）
+- **App 直签（核心）**：模块 App 直接完成签到——root 读取 Trae 私有凭证（JWT + device_id）后直接请求 Trae 服务端接口，**全程不拉起 Trae**，签到完静默通知结果
+- **定时签到**：自定义时间 + 随机偏移量（模拟真实节奏）。闹钟使用 `AlarmManager.setAlarmClock`（闹钟级 API，MIUI 自启动管控不拦截，进程被杀也会被拉起）；当日已签自动跳过，重启后自动恢复布防
+- **签到结果通知 + 余额**：签到成功/失败（含"今日已签"）发系统通知，**通知与 Toast 直接显示本次积分与剩余余额**；签到后自动查询一次余额并写回状态
+- **状态卡实时刷新**：打开模块 App 即刷新余额（直连 ent_usage 接口）；修改定时时间/偏移立即更新显示
+- **Trae 深色模式**：对 Trae 每个窗口挂亮度反转硬件层（白→黑、色相保持），**冷启动首屏即深色**（开关落盘宿主目录，注入时预读，无框架就绪等待）；模块自身深浅支持跟随系统或手动选择，与 Trae 深色相互独立
+- **漏签兜底**：直签失败自动回退拉起 Trae（后台压回）由 hook 引擎补签，3 分钟后检查并通知结果；Trae 运行中由引擎每分钟巡检兜底
+- **日志**：模块 App 自身日志持久化到 `files/logs/app_*.log`（每日轮转，保留 5 天）；导出一键保存到 Download（App 侧日志为主体 + hook 侧日志镜像附加，不依赖 Trae 运行）
 - **Token 过期预警**：7 天内过期发送系统通知
-- **暗夜模式**：跟随系统（DayNight），可控制 Trae 本体夜间模式
-- **云端账号管理**：多账号凭证同步（友爱账号 Uniai）
+- **Trae 内注入入口**：在 Trae 积分页注入签到入口（CreditsUiHook）
+
+## 权限说明
+
+| 权限 | 用途 | 没有它会怎样 |
+| --- | --- | --- |
+| **通知** | 接收签到结果（成功/失败 + 积分与余额）、Token 过期预警 | 签到照常进行，但看不到任何结果提示 |
+| **自启动**（MIUI 手动开启） | 定时签到到点时让系统能拉起模块执行 | 模块进程被杀后定时签到可能到点无人执行 |
+| **Root（su）** | 读取 Trae 私有凭证与签到状态、写回结果、写深色开关、拉起 Trae 兜底 | 直签不可用，只能依赖"Trae 运行中"的 hook 引擎路径 |
+
+设置页「权限设置」区块内可一键跳转：通知权限（弹出说明 → 系统授权/通知设置页）、自启动（弹出说明 → MIUI 应用详情页手动允许）。
+
+> 首次打开会检测 **Root** 与 **LSPosed 授权**，缺少任一项会弹窗引导前往设置（这两项是硬性要求）；通知/自启动不强制。
 
 ## 工作原理
 
 ```
-宿主进程（com.bytedance.trae.cn）
-├── XposedEntry          # 入口：onPackageLoaded 抓 Context / onPackageReady 装载 Hook
-├── HookLoader           # Hook 安装调度
-├── Creds                # 从宿主私有目录提取运行时凭证（token / device_id）
-├── TraeApiSource        # 远程接口源：COS 拉取 → 落盘缓存 → 内置兜底（版本回退保护）
-├── SignInEngine         # 主动签到引擎：状态查询 → 签到 → 去重 → 重试
-│     ├── 去重：宿主 filesDir 状态文件为权威源（day 键 + 尝试护栏 + 失败上限）
-│     ├── 调度：启动补签 + tick 轮询 + AlarmManager 每日闹钟（三级降级）
-│     └── 双进程（main / :push）安全
-└── CreditsUiHook        # Trae 设置面板注入签到入口 + 余额刷新
-      └── DarkModeHook      # Force Dark opt-in，控制 Trae 本体夜间模式
+模块 App 进程（主路径：直签）
+├── App                 # 入口：日志初始化、定时布防、通知权限 root 静默授予
+├── SettingsActivity    # 设置界面：状态卡（余额/定时/注入状态）、权限申请、日志导出
+├── LocalSigner         # 直签：su 读凭证 → status 查询 → claim 重试(0/10/30s) → 余额 → 通知
+├── SchedLauncher       # 定时调度：setAlarmClock 布防 → 到点直签（失败回退拉起 Trae）
+└── util/L              # 日志：内存环形缓冲 + App 侧文件持久化 + LSPosed 日志桥接
 
-模块 App 进程
-├── App / SettingsActivity / LoginActivity   # 设置与账号（RemotePreferences 与宿主双向桥接）
-├── cloud/{CloudApi, RemoteBases, TokenManager, Updater}  # 云端账号 API / 远程服务地址 / 凭证存储 / 自更新
-└── util/L                                   # 日志桥接至 XposedModule.log
+宿主进程（com.bytedance.trae.cn，兜底路径）
+├── XposedEntry         # 入口：onPackageLoaded 抓 Context / onPackageReady 装载 Hook
+├── HookLoader          # Hook 安装调度
+├── SignInEngine        # 签到引擎（Trae 运行时兜底）：启动补签 + 分钟 tick + 每日闹钟
+├── Creds / TraeApiSource  # 凭证提取 / 远程接口源（COS 配置，失败回退缓存或内置）
+├── DarkModeHook        # Trae 深色：窗口硬件层亮度反转（启动即预读开关文件）
+└── CreditsUiHook       # Trae 积分页注入签到入口 + 余额刷新
+
+跨进程
+├── 宿主状态文件 /data/data/com.bytedance.trae.cn/files/trae_signin_state.json（权威源，App 经 root 读写）
+└── LSPosed remote prefs（设置下发 + hook 日志镜像）
 ```
 
-凭证不硬编码、不上传：引擎在宿主进程内运行时动态读取宿主自身已登录的凭证，请求也在宿主进程内发起。
-
-### 远程配置（api_source.json）
-
-参考 Hazuki 的远端源方案，两类地址均托管在腾讯云 COS（公有读 JSON），App 启动时自动下载：
-
-1. **签到接口源**（hook 侧 [TraeApiSource.kt](app/src/main/java/com/example/traesignin/hook/TraeApiSource.kt)）：status / claim / ent_usage 三个接口地址
-2. **云端服务地址**（App 侧 [RemoteBases.kt](app/src/main/java/com/example/traesignin/cloud/RemoteBases.kt)）：auth-center / trae-worker 地址——真实服务器地址不出现在源码里
-
-```json
-{
-  "version": 2,
-  "status_url": "https://api.trae.cn/trae/api/v2/ug/checkin_credits/status",
-  "claim_url": "https://api.trae.cn/trae/api/v2/ug/checkin_credits/claim",
-  "ent_usage_url": "https://api.trae.cn/trae/api/v2/pay/ide_user_ent_usage",
-  "auth_base": "http://your-server:3010",
-  "worker_base": "http://your-server:3011"
-}
-```
-
-拉取策略（两处一致）：
-
-- 进程启动/首次访问时拉取（30 分钟静默期），成功后覆盖本地缓存
-- 拉取失败沿用上次缓存；签到源从未成功过则使用内置兜底地址
-- 仅接受绝对 http(s) 地址；远端 `version` 低于当前版本时不覆盖（回退保护）
+签到接口地址不打包死在 APK 里：签到前从腾讯云 COS 拉取 `api_source.json`（30 分钟静默期，版本回退保护），失败沿用本地缓存或内置兜底地址——接口变更无需发版。
 
 ## 安装
 
-> **先看这张表，按自己的设备环境二选一：**
-
-| 你的设备 | 选哪个包 | 需要 Root？ | 需要 LSPosed？ |
-| --- | --- | :---: | :---: |
-| 已 Root + 已装 LSPosed（API 102） | `traesignin-x.x.x-release.apk`（标准模块） | ✅ 需要 | ✅ 需要 |
-| **没有 Root / 没装任何框架** | `trae-npatch-x.x.x.apk`（免 Root 直装包） | ❌ 不需要 | ❌ 不需要 |
-
-前往 [Releases](https://github.com/ZhaoyuanGuo/trae-pro-signin/releases) 下载。
-
-### 方式一：标准 LSPosed 模块（需 Root + LSPosed）
-
-适用于**已 Root 且已安装 LSPosed**（libxposed API 102）的设备。
-
-1. 安装 `traesignin-x.x.x-release.apk`
+1. 安装 APK（需 Root + LSPosed，libxposed API 102）
 2. 在 LSPosed 管理器中启用模块，作用域勾选 **Trae**
-3. 打开模块 App「TRAE Pro」完成设置
-4. 重启 Trae 生效
+3. 打开模块 App「TRAE Pro」，按需开启通知/自启动权限
+4. 完成——定时与手动签到均不再需要打开 Trae
 
-### 方式二：免 Root 直装包（**没有 Root、没有 LSPosed 框架的选这个**）
+> **不支持免 Root 使用。** 原版（v1.0.10 及以前）曾提供 NPatch 免 Root 直装包，本仓库后续版本依赖 root 直签与 su 拉起，**不提供免 Root 版本**；无 Root 环境请使用原版。
 
-`trae-npatch-x.x.x.apk` 是用 [NPatch](https://github.com/7723mod/NPatch) 把本模块内嵌进 Trae 客户端后重新签名的**独立可安装包**——开箱即用，**不需要 Root、不需要 LSPosed、不需要任何 Xposed 框架**。
-
-1. **先卸载设备上原有的 Trae**（包名相同、签名不同，无法覆盖安装；卸载会清除 Trae 本地登录数据，请自行确认）
-2. 安装 `trae-npatch-x.x.x.apk`
-3. 打开应用登录 Trae 账号即可，模块随宿主进程自动注入，无需任何额外配置
-
-> 注意：该包内嵌的 Trae 客户端为**重打包版本**，仅供学习研究使用；后续 Trae 官方更新时，本包不会自动跟随升级。
-
-### 自行构建
+## 自行构建
 
 ```bash
 # Android Studio 打开项目 → Build → Make Project，或：
 gradle assembleRelease        # 产物：app/build/outputs/apk/release/app-release.apk
 ```
 
-> 注意：本项目基于 LSPosed fork（API 102，支持热重载），`app/libs/` 中已内置 fork 提供的服务层 AAR（XposedService / HotReload），标准 LSPosed 可能不兼容。
+> 注意：本项目基于 LSPosed fork（API 102），`app/libs/` 中内置 fork 提供的服务层 AAR（XposedService / HotReload），标准 LSPosed 可能不兼容。
 
 ## 参考
 
 - [LSPosed](https://github.com/LSPosed/LSPosed)
 - [libxposed API](https://github.com/libxposed/api)
-- [NPatch](https://github.com/7723mod/NPatch)（免 Root 打包工具）
 
 ## License
 

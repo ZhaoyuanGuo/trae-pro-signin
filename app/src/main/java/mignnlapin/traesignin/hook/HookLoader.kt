@@ -1,6 +1,6 @@
-package com.example.traesignin.hook
+package mignnlapin.traesignin.hook
 
-import com.example.traesignin.util.L
+import mignnlapin.traesignin.util.L
 
 object HookLoader {
     private val hooks: List<SubHook> = listOf(
