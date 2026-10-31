@@ -1,10 +1,10 @@
-package com.example.traesignin
+package mignnlapin.traesignin
 
 import android.app.Application
 import android.content.Context
-import com.example.traesignin.hook.DarkModeHook
-import com.example.traesignin.hook.HookLoader
-import com.example.traesignin.util.L
+import mignnlapin.traesignin.hook.DarkModeHook
+import mignnlapin.traesignin.hook.HookLoader
+import mignnlapin.traesignin.util.L
 import io.github.libxposed.api.XposedInterface
 import io.github.libxposed.api.XposedModule
 import io.github.libxposed.api.XposedModuleInterface

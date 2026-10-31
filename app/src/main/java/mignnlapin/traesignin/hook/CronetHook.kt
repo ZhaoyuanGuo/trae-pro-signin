@@ -1,7 +1,7 @@
-package com.example.traesignin.hook
+package mignnlapin.traesignin.hook
 
-import com.example.traesignin.XposedEntry
-import com.example.traesignin.util.L
+import mignnlapin.traesignin.XposedEntry
+import mignnlapin.traesignin.util.L
 import io.github.libxposed.api.XposedInterface
 import java.util.concurrent.ConcurrentHashMap
 

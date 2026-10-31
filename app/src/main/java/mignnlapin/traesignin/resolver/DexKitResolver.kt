@@ -1,6 +1,6 @@
-package com.example.traesignin.resolver
+package mignnlapin.traesignin.resolver
 
-import com.example.traesignin.util.L
+import mignnlapin.traesignin.util.L
 
 /**
  * 类解析器 —— STRICT → LOOSE → EXPERIMENTAL 三级兜底。

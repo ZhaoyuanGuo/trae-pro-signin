@@ -12,7 +12,7 @@ val keystoreProps = Properties().apply {
 }
 
 android {
-    namespace = "com.example.traesignin"
+    namespace = "mignnlapin.traesignin"
     // patched AAR 的 aar-metadata 要求 minCompileSdk=36（对齐 chaoxingdeadline）
     compileSdk = 36
 
@@ -28,12 +28,12 @@ android {
     }
 
     defaultConfig {
-        applicationId = "io.github.zhaoyuanguo.traesignin"
+        applicationId = "mignnlapin.traesignin"
         // patched AAR 要求 minSdk 26（对齐 chaoxingdeadline；目标设备 Android 17）
         minSdk = 26
         targetSdk = 35
-        versionCode = 9
-        versionName = "1.0.8"
+        versionCode = 20
+        versionName = "2.1"
     }
 
     buildTypes {
@@ -80,10 +80,6 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.preference:preference-ktx:1.2.1")
     implementation("com.google.android.material:material:1.12.0")
-
-    // 友爱账号体系（Uniai）+ 代签（OkHttp 成熟稳定；security-crypto 提供加密存储）
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
     compileOnly("de.robv.android.xposed:api:82")
     compileOnly("de.robv.android.xposed:api:82:sources")

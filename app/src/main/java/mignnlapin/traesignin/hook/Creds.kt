@@ -1,8 +1,8 @@
-package com.example.traesignin.hook
+package mignnlapin.traesignin.hook
 
 import android.content.Context
 import android.util.Base64
-import com.example.traesignin.util.L
+import mignnlapin.traesignin.util.L
 import org.json.JSONObject
 import java.io.File
 

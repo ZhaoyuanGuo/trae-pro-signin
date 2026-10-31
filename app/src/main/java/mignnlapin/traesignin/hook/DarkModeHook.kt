@@ -1,4 +1,4 @@
-package com.example.traesignin.hook
+package mignnlapin.traesignin.hook
 
 import android.app.Activity
 import android.app.Dialog
@@ -14,10 +14,11 @@ import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
-import com.example.traesignin.XposedEntry
-import com.example.traesignin.XposedEntryHolder
-import com.example.traesignin.util.L
+import mignnlapin.traesignin.XposedEntry
+import mignnlapin.traesignin.XposedEntryHolder
+import mignnlapin.traesignin.util.L
 import io.github.libxposed.api.XposedInterface
+import java.lang.ref.WeakReference
 
 /**
  * Trae 深色主题（Hardware Layer 亮度反转路线）。
@@ -33,15 +34,21 @@ import io.github.libxposed.api.XposedInterface
  * 白→黑、浅灰→深灰、品牌蓝→浅蓝紫）。作用于子树全部绘制内容（含 Compose）。
  *
  * 开关：trae_dark（remote prefs "trae_settings"，App 侧写入）。窗口 onResume/show 时
- * 按当前开关状态挂载/移除；60s 周期同步开关与系统模式。
+ * 按当前开关状态挂载/移除；开关状态变化时立即应用到所有存活窗口
+ *（修复：此前仅在 onResume/show 时机应用，开关延迟就绪或切换后要等下次窗口回调才变色）。
  */
 object DarkModeHook {
 
     private const val TAG = "DarkModeHook"
-    private const val SYNC_INTERVAL_MS = 60_000L
+    private const val SYNC_INTERVAL_MS = 20_000L
+    /** install 后的前几次快速同步（remote prefs 就绪时尽快拿到开关，避免首屏亮色等满 60s） */
+    private val EARLY_SYNC_DELAYS_MS = longArrayOf(1_000L, 3_000L, 8_000L, 20_000L, 40_000L)
 
-    /** 当前深色状态（60s 同步循环更新；窗口回调时机读取） */
+    /** 当前深色状态（同步循环更新；窗口回调时机读取） */
     @Volatile private var darkNow = false
+
+    /** 存活 Activity 弱引用（onResume 时注册）：开关变化时立即应用到已打开的窗口 */
+    private val activities = java.util.concurrent.CopyOnWriteArrayList<WeakReference<Activity>>()
 
     @Volatile private var lastAppliedMode: Int? = null
     private var syncStarted = false
@@ -87,13 +94,29 @@ object DarkModeHook {
     fun install() {
         val entry = XposedEntry.instance ?: run { L.e("[$TAG] entry null"); return }
 
+        // 开关文件预读：App 侧每次切换即 su 写入宿主 filesDir（同 uid 直接 File 读，
+        // 无框架就绪延迟）。remote prefs 首读未就绪会误报 false，此前冷启动要等
+        // 快速同步重试（实测 ~13s）才变色；预读后首屏即深色。
+        readDarkFlag()?.let {
+            darkNow = it
+            L.i("[$TAG] 开关文件预读 → darkNow=$it")
+        }
+
         // Activity 窗口：onResume 时机挂载/移除反转层
         try {
             entry.hook(Activity::class.java.getDeclaredMethod("onResume"), object : XposedInterface.Hooker {
                 override fun intercept(chain: XposedInterface.Chain): Any? {
                     val r = chain.proceed()
                     try {
-                        (chain.thisObject as? Activity)?.window?.let { applyToWindow(it) }
+                        val act = chain.thisObject as? Activity
+                        if (act != null) {
+                            activities.removeAll { it.get() == null || it.get() === act }
+                            activities.add(WeakReference(act))
+                            // 打开 App 直接注入：onResume 实时读开关（remote prefs），
+                            // 不依赖缓存的 darkNow，也不等周期同步
+                            try { applyFromRemote() } catch (_: Throwable) { }
+                            act.window?.let { applyToWindow(it) }
+                        }
                     } catch (t: Throwable) {
                         L.w("[$TAG] onResume: ${t.message}")
                     }
@@ -124,7 +147,32 @@ object DarkModeHook {
         }
 
         applyFromRemote()
+        registerRemoteListener()
         startSyncLoop()
+    }
+
+    /**
+     * remote prefs 变化监听：App 侧切换深色开关后立即回调（及时注入的正解），
+     * 周期同步仅作框架不支持监听时的兜底。
+     */
+    private fun registerRemoteListener() {
+        try {
+            XposedEntry.instance?.getRemotePreferences("trae_settings")
+                ?.registerOnSharedPreferenceChangeListener { _, key ->
+                    if (key != "trae_dark") return@registerOnSharedPreferenceChangeListener
+                    Handler(Looper.getMainLooper()).post {
+                        try {
+                            applyFromRemote()
+                            L.d("[$TAG] 监听器触发：trae_dark 变化已应用")
+                        } catch (t: Throwable) {
+                            L.w("[$TAG] 监听器应用异常: ${t.message}")
+                        }
+                    }
+                }
+            L.i("[$TAG] ✓ remote prefs 监听已注册")
+        } catch (t: Throwable) {
+            L.w("[$TAG] ✗ remote prefs 监听注册失败: ${t.message}")
+        }
     }
 
     /** 按 darkNow 对窗口 decor 的直接子层挂/卸硬件层色彩矩阵 */
@@ -143,6 +191,11 @@ object DarkModeHook {
         if (syncStarted) return
         syncStarted = true
         val h = Handler(Looper.getMainLooper())
+        // install 后 1s/3s/8s/20s/40s 快速同步，之后 60s 周期：
+        // remote prefs 首次读取可能拿到未就绪的默认值 false，加速重读尽快进入深色
+        for (delay in EARLY_SYNC_DELAYS_MS) {
+            h.postDelayed({ try { applyFromRemote() } catch (t: Throwable) { L.w("[$TAG] 同步异常: ${t.message}") } }, delay)
+        }
         h.postDelayed(object : Runnable {
             override fun run() {
                 try {
@@ -155,18 +208,46 @@ object DarkModeHook {
         }, SYNC_INTERVAL_MS)
     }
 
+    /** 开关状态变化时立即应用到所有存活 Activity 窗口（无需等待下一次 onResume） */
+    private fun applyToAllAlive() {
+        for (ref in activities) {
+            val act = ref.get() ?: continue
+            try {
+                if (act.isDestroyed || act.isFinishing) continue
+                act.window?.let { applyToWindow(it) }
+            } catch (_: Throwable) { }
+        }
+    }
+
+    /** 读宿主 filesDir 的开关文件（App 侧切换时 su 写入）：true/false；无文件或异常返回 null */
+    private fun readDarkFlag(): Boolean? = try {
+        val dir = XposedEntryHolder.currentApp()?.filesDir ?: return null
+        when (java.io.File(dir, "trae_dark_flag").readText().trim()) {
+            "1" -> true
+            "0" -> false
+            else -> null
+        }
+    } catch (_: Throwable) {
+        null
+    }
+
     /** 读 App 侧镜像开关（remote prefs trae_settings.trae_dark），应用 per-app 夜间配置 */
     private fun applyFromRemote() {
-        var enabled: Boolean? = null
-        XposedEntry.instance?.getRemotePreferences("trae_settings")?.let {
-            enabled = try {
-                it.getBoolean("trae_dark", false)
-            } catch (_: Throwable) {
-                null
+        // 开关文件为权威源（启动预读 + 实时读取均最快）；读不到（首次安装/旧版未写过）才回退 remote prefs
+        var enabled: Boolean? = readDarkFlag()
+        if (enabled == null) {
+            XposedEntry.instance?.getRemotePreferences("trae_settings")?.let {
+                enabled = try {
+                    it.getBoolean("trae_dark", false)
+                } catch (_: Throwable) {
+                    null
+                }
             }
         }
         val dark = enabled ?: return
+        val changed = dark != darkNow
         darkNow = dark
+        if (changed) applyToAllAlive()
         val ctx = XposedEntryHolder.currentApp() ?: return
         val mode = resolveMode(ctx, dark)
         if (mode == lastAppliedMode) return

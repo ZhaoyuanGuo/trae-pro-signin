@@ -1,4 +1,4 @@
-package com.example.traesignin.hook
+package mignnlapin.traesignin.hook
 
 import android.annotation.SuppressLint
 import android.app.AlarmManager
@@ -16,9 +16,9 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
 import android.widget.Toast
-import com.example.traesignin.XposedEntry
-import com.example.traesignin.util.L
-import com.example.traesignin.util.Prefs
+import mignnlapin.traesignin.XposedEntry
+import mignnlapin.traesignin.util.L
+import mignnlapin.traesignin.util.Prefs
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.File
@@ -44,8 +44,7 @@ internal object SignInEngine {
     private const val STATE_PREFS = "trae_state"       // hook → App：结果上报（UI 镜像）
     private const val SETTINGS_PREFS = "trae_settings" // App → hook：设置镜像
     private const val STATE_FILE = "trae_signin_state.json"
-    private const val CHANNEL_ID = "trae_signin"
-    private const val ACTION_TICK = "io.github.zhaoyuanguo.traesignin.TICK"
+    private const val ACTION_TICK = "mignnlapin.traesignin.TICK"
 
     // 接口源不再硬编码：启动/签到前从 COS 拉取配置（TraeApiSource），失败回退缓存或内置地址
     // 积分余额（Trae 手机端设置面板同源接口，已实测）：Σ max(credits_limit - used, 0)
@@ -86,10 +85,6 @@ internal object SignInEngine {
         var schedOffsetVal: Int = -1
         var schedFiredDay: String = ""
         var nextSchedAt: Long = 0L
-        /** 漏签检测：近 7 天内无成功记录的日期（不含今天、不早于注入日），如 ["2026-09-28"] */
-        var missedDays = org.json.JSONArray()
-        /** 漏签检测完成时间（0 = 未检测） */
-        var missedCheckedAt: Long = 0L
     }
 
     // ---- 启动 ----
@@ -158,44 +153,6 @@ internal object SignInEngine {
         }
         // 定时签到检查
         schedCheck(ctx, state)
-        // 每日一次的漏签检测（跨天后首次 tick 重扫近 7 天）
-        if (dayKey(state.missedCheckedAt) != dayKey(System.currentTimeMillis())) {
-            checkMissedDays(ctx)
-        }
-    }
-
-    /**
-     * 漏签检测：扫近 7 天（不含今天，且不早于注入日——未安装前的日子无法签到，不算漏签），
-     * history 中无记录或 ok=0 记为漏签。服务端只签当天，历史失败日无法补试，检测仅用于告知。
-     */
-    private fun checkMissedDays(ctx: Context) {
-        val s = loadState(ctx)
-        val hookDay = s.hookStartedAt.takeIf { it > 0L }?.let { dayKey(it) } ?: ""
-        val fmt = SimpleDateFormat("yyyy-MM-dd", Locale.CHINA)
-        val missed = org.json.JSONArray()
-        val base = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
-        }
-        for (i in 7 downTo 1) {
-            val day = fmt.format((base.clone() as Calendar).apply { add(Calendar.DATE, -i) }.time)
-            if (hookDay.isNotEmpty() && day < hookDay) continue // 注入前的日子不追究
-            var ok = false
-            for (j in 0 until s.history.length()) {
-                val e = s.history.optJSONObject(j) ?: continue
-                if (e.optString("day") == day && e.optInt("ok", 0) == 1) { ok = true; break }
-            }
-            if (!ok) missed.put(day)
-        }
-        val changed = missed.toString() != s.missedDays.toString()
-        s.missedDays = missed
-        s.missedCheckedAt = System.currentTimeMillis()
-        saveState(ctx, s)
-        if (missed.length() > 0) {
-            L.i("SignInEngine: 漏签检测完成：最近漏签 ${missed.length()} 天（$missed）" + if (changed) "" else "（与上次一致）")
-        } else {
-            L.i("SignInEngine: 漏签检测完成：近 7 天无漏签")
-        }
     }
 
     private val tickReceiver = object : BroadcastReceiver() {
@@ -253,15 +210,6 @@ internal object SignInEngine {
             L.i("SignInEngine: 自动签到已关闭（$reason）")
             return
         }
-        // 云端代签开启：本机当日跳过 claim（手动签到优先不受限），由服务器定时执行，
-        // 避免两端抢签；结果经 App 补录/回读保持状态一致
-        if (reason != "manual") {
-            val cloudOn = remote(SETTINGS_PREFS) { it.getBoolean("cloud_signin_enabled", false) } ?: false
-            if (cloudOn) {
-                L.i("SignInEngine: 云端代签已开启，本机跳过 claim（$reason）")
-                return
-            }
-        }
         val state = loadState(ctx)
         if (reason != "manual" && state.lastOkDay == today) {
             L.i("SignInEngine: 今日($today)已签到，跳过（$reason）")
@@ -283,7 +231,13 @@ internal object SignInEngine {
 
         val cred = Creds.load(ctx)
         if (!cred.usable) {
-            fail(ctx, state, today, "未找到 Trae 登录凭证，请打开 Trae 确认已登录后重试")
+            // 凭证未就绪/丢失不计失败上限：3 分钟后快速重试（Trae 冷启动早期可能读不到），
+            // 不弹通知避免骚扰；结果经 lastResult 在模块 App 状态页可见
+            val s = loadState(ctx)
+            s.lastResult = "未找到 Trae 登录凭证，请打开 Trae 确认已登录后重试"
+            s.nextRetryAt = System.currentTimeMillis() + 3 * 60_000L
+            saveState(ctx, s)
+            L.e("❌ SignInEngine: ${s.lastResult}（3 分钟后重试）")
             return
         }
         checkTokenExpiry(ctx, state, cred.tokenExpAt)
@@ -356,7 +310,6 @@ internal object SignInEngine {
         val bal = balanceText(s)
         val extra = if (credits > 0) "+$credits 积分$bal" else bal
         toast(ctx, "✅ $result（$extra）")
-        notify(ctx, "TRAE 签到成功", "$result（$extra）", false)
         appCtx?.let { armScheduledAlarm(it) }
     }
 
@@ -421,7 +374,6 @@ internal object SignInEngine {
         saveState(ctx, s)
         L.e("❌ SignInEngine: $msg（第 ${s.failCount} 次失败）")
         toast(ctx, "❌ $msg")
-        notify(ctx, "TRAE 签到失败", msg, true)
     }
 
     /** 宿主进程内弹 Toast（引擎跑在 HandlerThread，Toast 需主线程 Looper） */
@@ -449,9 +401,7 @@ internal object SignInEngine {
         s.tokenWarnDay = today
         saveState(ctx, s)
         val fmt = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CHINA)
-        notify(ctx, "TRAE 登录凭证即将过期",
-            "Token 将于 ${fmt.format(Date(expAt))} 过期，请打开 Trae App 重新登录，否则自动签到将失效。",
-            true)
+        L.w("SignInEngine: 登录凭证即将过期（${fmt.format(Date(expAt))}），请打开 Trae 重新登录")
     }
 
     // ---- 网络（真机验证规格：Cloud-IDE-JWT + x-device-id） ----
@@ -620,30 +570,6 @@ internal object SignInEngine {
         }
     }
 
-    // ---- 通知 ----
-
-    private fun notify(ctx: Context, title: String, text: String, fail: Boolean) {
-        try {
-            val nm = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            if (Build.VERSION.SDK_INT >= 26) {
-                nm.createNotificationChannel(
-                    NotificationChannel(CHANNEL_ID, "自动签到", NotificationManager.IMPORTANCE_DEFAULT)
-                )
-            }
-            val icon = ctx.applicationInfo.icon.takeIf { it != 0 } ?: android.R.drawable.ic_dialog_info
-            val n = Notification.Builder(ctx, CHANNEL_ID)
-                .setSmallIcon(icon)
-                .setContentTitle(title)
-                .setContentText(text)
-                .setStyle(Notification.BigTextStyle().bigText(text))
-                .setAutoCancel(true)
-                .build()
-            nm.notify(if (fail) 2002 else 2001, n)
-        } catch (t: Throwable) {
-            L.w("SignInEngine: 通知失败: ${t.message}")
-        }
-    }
-
     // ---- 持久化 ----
 
     /** 同一天覆盖写入（重试成功后把失败记录改为成功） */
@@ -696,8 +622,6 @@ internal object SignInEngine {
                 s.schedOffsetVal = obj.optInt("schedOffsetVal", -1)
                 s.schedFiredDay = obj.optString("schedFiredDay", "")
                 s.nextSchedAt = obj.optLong("nextSchedAt", 0L)
-                s.missedDays = obj.optJSONArray("missedDays") ?: org.json.JSONArray()
-                s.missedCheckedAt = obj.optLong("missedCheckedAt", 0L)
             }
         } catch (_: Throwable) { }
         return s
@@ -725,8 +649,6 @@ internal object SignInEngine {
                 .put("schedOffsetVal", s.schedOffsetVal)
                 .put("schedFiredDay", s.schedFiredDay)
                 .put("nextSchedAt", s.nextSchedAt)
-                .put("missedDays", s.missedDays)
-                .put("missedCheckedAt", s.missedCheckedAt)
             File(ctx.filesDir, STATE_FILE).writeText(obj.toString())
         } catch (t: Throwable) {
             L.w("SignInEngine: 状态保存失败: ${t.message}")

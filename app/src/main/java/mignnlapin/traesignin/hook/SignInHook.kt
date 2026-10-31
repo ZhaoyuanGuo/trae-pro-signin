@@ -1,10 +1,10 @@
-package com.example.traesignin.hook
+package mignnlapin.traesignin.hook
 
 import android.os.Handler
 import android.os.Looper
-import com.example.traesignin.XposedEntryHolder
-import com.example.traesignin.util.L
-import com.example.traesignin.util.Prefs
+import mignnlapin.traesignin.XposedEntryHolder
+import mignnlapin.traesignin.util.L
+import mignnlapin.traesignin.util.Prefs
 
 /**
  * 签到 Hook（libxposed API 102）。

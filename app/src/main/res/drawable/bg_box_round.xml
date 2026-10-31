@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 圆角方形背景（区别于胶囊形 bg_status_chip）：随机偏移调节框使用 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/badge_bg" />
+    <corners android:radius="12dp" />
+</shape>

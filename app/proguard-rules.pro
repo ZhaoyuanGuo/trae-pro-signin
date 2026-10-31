@@ -1,6 +1,6 @@
 # 保留所有 Xposed 相关类
 -keep class de.robv.android.xposed.** { *; }
--keep class com.example.traesignin.** { *; }
+-keep class mignnlapin.traesignin.** { *; }
 -keep public class * extends io.github.libxposed.api.XposedModule {
     public <init>();
 }

@@ -1,4 +1,4 @@
-package com.example.traesignin.util
+package mignnlapin.traesignin.util
 
 /**
  * 跨进程偏好读取。
@@ -16,7 +16,7 @@ object Prefs {
                     xsp = try {
                         val cls = Class.forName("de.robv.android.xposed.XSharedPreferences")
                         cls.getConstructor(String::class.java, String::class.java)
-                            .newInstance("com.example.traesignin", "trae_signin_prefs")
+                            .newInstance("mignnlapin.traesignin", "trae_signin_prefs")
                     } catch (_: Throwable) { null }
                 }
             }
